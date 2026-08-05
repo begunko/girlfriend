@@ -5,24 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Подружка</title>
     <style>
-        /* Сброс всех отступов */
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        html, body { 
-            width: 100%; 
-            height: 100%; 
-            overflow: hidden; 
-            background: #2a1f1a; /* Приятный тёмный фон */
-        }
-        /* Главный контейнер — он будет всегда на весь экран */
+        html, body { width: 100%; height: 100%; overflow: hidden; background: #2a1f1a; }
         #canvas-container {
-            width: 100vw;
-            height: 100vh;
-            display: block;
             position: fixed;
             top: 0;
             left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: #2a1f1a;
         }
-        /* Сам канвас — растягиваем на 100% */
         #canvas-container canvas {
             display: block;
             width: 100% !important;
@@ -48,99 +40,92 @@
 </head>
 <body>
     <div id="canvas-container"></div>
-    <div id="info">✨ Загрузка...</div>
+    <div id="info">💕 Загрузка...</div>
 
     <script src="https://cdn.babylonjs.com/babylon.js"></script>
     <script>
-        console.log('🚀 Запуск исправленной версии...');
+        console.log('🚀 Супер-фикс версия...');
 
-        // ================================================
-        // 1. ИНИЦИАЛИЗАЦИЯ СЦЕНЫ
-        // ================================================
         const container = document.getElementById('canvas-container');
         const canvas = document.createElement('canvas');
         container.appendChild(canvas);
 
+        // ============================================================
+        // ЖЕСТКО ЗАДАЁМ РАЗМЕРЫ CANVAS В ПИКСЕЛЯХ
+        // ============================================================
+        function resizeCanvas() {
+            const width = window.innerWidth;
+            const height = window.innerHeight;
+            canvas.width = width;
+            canvas.height = height;
+            canvas.style.width = width + 'px';
+            canvas.style.height = height + 'px';
+            if (engine) {
+                engine.resize();
+            }
+            console.log(`📐 Ресайз: ${width}x${height}`);
+        }
+
         const engine = new BABYLON.Engine(canvas, true);
         const scene = new BABYLON.Scene(engine);
-        scene.clearColor = new BABYLON.Color4(0.16, 0.12, 0.10, 1); // Красивый коричневый фон
+        scene.clearColor = new BABYLON.Color4(0.16, 0.12, 0.10, 1);
 
-        // ================================================
-        // 2. КАМЕРА (увеличенная)
-        // ================================================
         const camera = new BABYLON.ArcRotateCamera(
             'camera', 
             Math.PI / 2, 
             Math.PI / 3, 
-            6,  // Отодвинули камеру дальше, чтобы куб точно был виден
+            6, 
             new BABYLON.Vector3(0, 0.5, 0), 
             scene
         );
         camera.attachControl(canvas, true);
-        // Ограничиваем, чтобы камера не улетала слишком далеко
         camera.lowerRadiusLimit = 2;
         camera.upperRadiusLimit = 10;
 
-        // ================================================
-        // 3. СВЕТ
-        // ================================================
-        const light = new BABYLON.HemisphericLight(
-            'light', 
-            new BABYLON.Vector3(0, 1, 0), 
-            scene
-        );
+        const light = new BABYLON.HemisphericLight('light', new BABYLON.Vector3(0, 1, 0), scene);
         light.intensity = 0.9;
         light.diffuse = new BABYLON.Color3(1, 0.9, 0.8);
 
-        const fillLight = new BABYLON.DirectionalLight(
-            'fillLight', 
-            new BABYLON.Vector3(-1, 0.5, 1), 
-            scene
-        );
+        const fillLight = new BABYLON.DirectionalLight('fillLight', new BABYLON.Vector3(-1, 0.5, 1), scene);
         fillLight.intensity = 0.5;
 
-        // ================================================
-        // 4. КУБ (сделаем его красивее)
-        // ================================================
+        // Куб
         const box = BABYLON.MeshBuilder.CreateBox('box', { size: 1.2 }, scene);
         box.position.y = 0.6;
-        
-        // Яркий материал, чтобы точно было видно
         const material = new BABYLON.StandardMaterial('mat', scene);
-        material.diffuseColor = new BABYLON.Color3(1, 0.4, 0.6); // Розово-красный
+        material.diffuseColor = new BABYLON.Color3(1, 0.4, 0.6);
         material.specularColor = new BABYLON.Color3(0.3, 0.3, 0.3);
         box.material = material;
 
-        // Пол (чтобы было понятно, где пол)
+        // Пол
         const ground = BABYLON.MeshBuilder.CreateGround('ground', { width: 4, height: 4 }, scene);
         ground.position.y = 0;
         const groundMat = new BABYLON.StandardMaterial('groundMat', scene);
         groundMat.diffuseColor = new BABYLON.Color3(0.3, 0.25, 0.2);
         ground.material = groundMat;
 
-        // ================================================
-        // 5. ЗАПУСК
-        // ================================================
         document.getElementById('info').innerHTML = '💕 Привет, я твоя подружка!';
 
+        // ============================================================
+        // РЕНДЕРИНГ
+        // ============================================================
         engine.runRenderLoop(() => {
             box.rotation.x += 0.005;
             box.rotation.y += 0.01;
             scene.render();
         });
 
-        // АДАПТАЦИЯ ПОД РАЗМЕРЫ (ВАЖНО)
-        window.addEventListener('resize', () => {
-            engine.resize();
-        });
+        // ============================================================
+        // ВЫЗЫВАЕМ РЕСАЙЗ ПРИ ЗАГРУЗКЕ И ПРИ ИЗМЕНЕНИИ РАЗМЕРА
+        // ============================================================
+        window.addEventListener('resize', resizeCanvas);
+        
+        // Вызываем сразу, потом через 0.5 сек и через 2 сек (для надежности)
+        resizeCanvas();
+        setTimeout(resizeCanvas, 500);
+        setTimeout(resizeCanvas, 2000);
 
-        // В VK размер может меняться после загрузки — сделаем пересчёт через секунду
-        setTimeout(() => {
-            engine.resize();
-            console.log('🔄 Принудительный ресайз');
-        }, 500);
-
-        console.log('✅ Исправленный тест запущен!');
+        console.log('✅ Супер-фикс версия запущена!');
     </script>
 </body>
 </html>
