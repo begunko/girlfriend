@@ -3,9 +3,10 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Подружка 🍳</title>
+    <title>Кубики</title>
     <style>
-        body { margin: 0; overflow: hidden; }
+        body { margin: 0; overflow: hidden; background: #1a1a2e; }
+        canvas { display: block; width: 100vw; height: 100vh; background: #1a1a2e; }
         #info {
             position: fixed;
             bottom: 20px;
@@ -13,120 +14,156 @@
             width: 100%;
             text-align: center;
             font-family: 'Segoe UI', Arial, sans-serif;
-            font-size: 20px;
-            font-weight: bold;
+            font-size: 18px;
             color: #fff;
             text-shadow: 0 2px 10px rgba(0,0,0,0.7);
             pointer-events: none;
             z-index: 10;
             background: rgba(0,0,0,0.2);
-            padding: 15px 0;
+            padding: 10px 0;
             backdrop-filter: blur(2px);
         }
     </style>
 </head>
 <body>
-    <div id="info">💕 Привет, я твоя подружка на кухне!</div>
+    <canvas id="canvas"></canvas>
+    <div id="info">💕 Привет! (Просто кубики)</div>
 
-    <!-- ============================================ -->
-    <!-- 1. ПОДКЛЮЧАЕМ A-FRAME (ОГРОМНЫЙ ПЛЮС: ОН ЛЕГКИЙ!) -->
-    <!-- ============================================ -->
-    <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
-
-    <!-- ============================================ -->
-    <!-- 2. СЦЕНА (ВСЯ МАГИЯ В HTML-ТЕГАХ) -->
-    <!-- ============================================ -->
-    <a-scene background="color: #f5e6d3">
-        
-        <!-- ===== ОСВЕЩЕНИЕ ===== -->
-        <a-light type="ambient" color="#fff" intensity="0.5"></a-light>
-        <a-light type="directional" color="#fff" intensity="0.8" position="2 3 4"></a-light>
-
-        <!-- ===== ПОДРУЖКА (ИЗ ПРИМИТИВОВ) ===== -->
-        <!-- Тело (платье) -->
-        <a-cylinder id="body" position="0 0.6 0" radius="0.3" height="1" color="#f28b8b"></a-cylinder>
-        
-        <!-- Голова -->
-        <a-sphere position="0 1.35 0" radius="0.3" color="#fce3d8"></a-sphere>
-        
-        <!-- Глаза -->
-        <a-sphere position="-0.12 1.45 0.28" radius="0.06" color="#2c3e50"></a-sphere>
-        <a-sphere position="0.12 1.45 0.28" radius="0.06" color="#2c3e50"></a-sphere>
-        
-        <!-- Волосы -->
-        <a-sphere position="0 1.5 -0.05" radius="0.35" color="#4a2c1a" scale="1 0.5 1"></a-sphere>
-
-        <!-- ===== КУХНЯ ===== -->
-        <!-- Стол -->
-        <a-box position="1.2 0.3 -0.8" width="1.2" height="0.08" depth="0.6" color="#8b6b4b"></a-box>
-        <a-box position="1.2 0 -0.8" width="0.06" height="0.5" depth="0.06" color="#8b6b4b"></a-box>
-
-        <!-- Пол (красивый) -->
-        <a-plane position="0 0 0" rotation="-90 0 0" width="6" height="6" color="#d9c8b0"></a-plane>
-
-        <!-- Стена (задник) -->
-        <a-plane position="0 1.5 -2" rotation="0 0 0" width="6" height="3" color="#f0e6d3"></a-plane>
-
-        <!-- Картинка на стене (для уюта) -->
-        <a-box position="-1.2 1.5 -1.9" width="0.6" height="0.4" depth="0.05" color="#4a90d9"></a-box>
-
-        <!-- ===== АНИМАЦИЯ "ПЕРЕМИНАНИЕ" ===== -->
-        <a-entity id="girl-group" position="0 0 0" animation="property: rotation.z; to: 0.03; dur: 800; dir: alternate; loop: true">
-            <!-- Привязываем всю девушку к группе -->
-            <a-entity position="0 0 0">
-                <a-cylinder id="body" position="0 0.6 0" radius="0.3" height="1" color="#f28b8b"></a-cylinder>
-                <a-sphere position="0 1.35 0" radius="0.3" color="#fce3d8"></a-sphere>
-                <a-sphere position="-0.12 1.45 0.28" radius="0.06" color="#2c3e50"></a-sphere>
-                <a-sphere position="0.12 1.45 0.28" radius="0.06" color="#2c3e50"></a-sphere>
-                <a-sphere position="0 1.5 -0.05" radius="0.35" color="#4a2c1a" scale="1 0.5 1"></a-sphere>
-            </a-entity>
-        </a-entity>
-
-    </a-scene>
-
-    <!-- ============================================ -->
-    <!-- 3. VK КНОПКА "ПОЗВАТЬ ПОДРУЖКУ" -->
-    <!-- ============================================ -->
     <script>
-        // Подключаем VK Bridge (для кнопки)
-        (function() {
-            const script = document.createElement('script');
-            script.src = 'https://vk.com/js/api/openapi.js?169';
-            document.head.appendChild(script);
-            script.onload = function() {
-                VK.init(function() {
-                    console.log('✅ VK Bridge готов!');
-                });
-            };
-        })();
+        // ============================================================
+        // 1. НАСТРОЙКА CANVAS
+        // ============================================================
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
 
-        // Создаём кнопку (через DOM, чтобы не зависеть от VK)
-        const btn = document.createElement('button');
-        btn.innerText = '💕 Позвать подружку';
-        btn.style.cssText = `
-            position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%);
-            z-index: 20; padding: 14px 28px; border: none; border-radius: 40px;
-            background: #ff6b8a; color: white; font-size: 20px; font-weight: bold;
-            cursor: pointer; box-shadow: 0 4px 20px rgba(255,107,138,0.4);
-            font-family: 'Segoe UI', Arial, sans-serif;
-            transition: all 0.2s;
-            backdrop-filter: blur(4px);
-            border: 1px solid rgba(255,255,255,0.2);
-        `;
-        btn.onmouseenter = function() { this.style.transform = 'translateX(-50%) scale(1.05)'; };
-        btn.onmouseleave = function() { this.style.transform = 'translateX(-50%) scale(1)'; };
-        btn.onclick = function() {
-            if (typeof VK !== 'undefined' && VK.callMethod) {
-                VK.callMethod('showInviteBox', {
-                    text: 'Загляни к моей подружке на кухню! 💕'
-                });
-            } else {
-                alert('Поделиться можно только в приложении VK!');
+        function resize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        resize();
+        window.addEventListener('resize', resize);
+
+        // ============================================================
+        // 2. ПАРАМЕТРЫ КУБИКОВ
+        // ============================================================
+        const cubes = [
+            { x: 0, y: 0, size: 80, color: '#ff6b8a', rotX: 0, rotY: 0, speedX: 0.02, speedY: 0.03 },
+            { x: 120, y: 0, size: 60, color: '#4a9eff', rotX: 0, rotY: 0, speedX: -0.03, speedY: 0.02 },
+            { x: -120, y: 0, size: 60, color: '#ffd93d', rotX: 0, rotY: 0, speedX: 0.02, speedY: -0.03 },
+        ];
+
+        // ============================================================
+        // 3. ФУНКЦИЯ РИСОВАНИЯ КУБА (ИЗОМЕТРИЯ)
+        // ============================================================
+        function drawCube(ctx, cx, cy, size, color, rotX, rotY) {
+            const half = size / 2;
+            const angle = Math.PI / 6;
+
+            function project(x, y, z) {
+                const cosX = Math.cos(rotX);
+                const sinX = Math.sin(rotX);
+                const cosY = Math.cos(rotY);
+                const sinY = Math.sin(rotY);
+
+                let x1 = x * cosY - z * sinY;
+                let z1 = x * sinY + z * cosY;
+                let y1 = y;
+
+                let y2 = y1 * cosX - z1 * sinX;
+                let z2 = y1 * sinX + z1 * cosX;
+
+                const px = cx + (x1 - z2) * Math.cos(angle);
+                const py = cy + (x1 + z2) * Math.sin(angle) - y2 * 0.5;
+                return { x: px, y: py };
             }
-        };
-        document.body.appendChild(btn);
 
-        console.log('✅ A-Frame подружка запущена!');
+            const vertices = [
+                [-1, -1, -1], [1, -1, -1], [1, -1, 1], [-1, -1, 1],
+                [-1, 1, -1], [1, 1, -1], [1, 1, 1], [-1, 1, 1]
+            ];
+
+            const projected = vertices.map(v => project(v[0] * half, v[1] * half, v[2] * half));
+
+            const faces = [
+                [0, 1, 2, 3], [4, 5, 6, 7],
+                [0, 1, 5, 4], [2, 3, 7, 6],
+                [0, 3, 7, 4], [1, 2, 6, 5]
+            ];
+
+            const edges = [
+                [0, 1], [1, 2], [2, 3], [3, 0],
+                [4, 5], [5, 6], [6, 7], [7, 4],
+                [0, 4], [1, 5], [2, 6], [3, 7]
+            ];
+
+            // Грани
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 2;
+            ctx.fillStyle = color + '33';
+
+            faces.forEach(face => {
+                ctx.beginPath();
+                face.forEach((idx, i) => {
+                    const p = projected[idx];
+                    if (i === 0) ctx.moveTo(p.x, p.y);
+                    else ctx.lineTo(p.x, p.y);
+                });
+                ctx.closePath();
+                ctx.fill();
+                ctx.stroke();
+            });
+
+            // Рёбра
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 1.5;
+            edges.forEach(edge => {
+                ctx.beginPath();
+                const p1 = projected[edge[0]];
+                const p2 = projected[edge[1]];
+                ctx.moveTo(p1.x, p1.y);
+                ctx.lineTo(p2.x, p2.y);
+                ctx.stroke();
+            });
+        }
+
+        // ============================================================
+        // 4. АНИМАЦИЯ
+        // ============================================================
+        const centerX = window.innerWidth / 2;
+        const centerY = window.innerHeight / 2;
+
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Звёзды
+            ctx.fillStyle = '#ffffff44';
+            for (let i = 0; i < 50; i++) {
+                const sx = (i * 137) % canvas.width;
+                const sy = (i * 97 + 50) % canvas.height;
+                ctx.beginPath();
+                ctx.arc(sx, sy, 1 + (i % 3), 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            // Кубики
+            cubes.forEach((cube, index) => {
+                cube.rotX += cube.speedX;
+                cube.rotY += cube.speedY;
+
+                const cx = centerX + cube.x;
+                const cy = centerY + cube.y + Math.sin(Date.now() / 1000 + index) * 10;
+
+                drawCube(ctx, cx, cy, cube.size, cube.color, cube.rotX, cube.rotY);
+            });
+
+            requestAnimationFrame(animate);
+        }
+
+        // ============================================================
+        // 5. ЗАПУСК
+        // ============================================================
+        animate();
+        console.log('✅ Кубики запущены!');
     </script>
 </body>
 </html>
