@@ -4,30 +4,11 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Кубики</title>
-    <style>
-        body { margin: 0; overflow: hidden; background: #1a1a2e; }
-        canvas { display: block; width: 100vw; height: 100vh; background: #1a1a2e; }
-        #info {
-            position: fixed;
-            bottom: 20px;
-            left: 0;
-            width: 100%;
-            text-align: center;
-            font-family: 'Segoe UI', Arial, sans-serif;
-            font-size: 18px;
-            color: #fff;
-            text-shadow: 0 2px 10px rgba(0,0,0,0.7);
-            pointer-events: none;
-            z-index: 10;
-            background: rgba(0,0,0,0.2);
-            padding: 10px 0;
-            backdrop-filter: blur(2px);
-        }
-    </style>
 </head>
-<body>
-    <canvas id="canvas"></canvas>
-    <div id="info">💕 Привет! (Просто кубики)</div>
+<body style="margin:0; padding:0; overflow:hidden; background:#1a1a2e; width:100vw; height:100vh;">
+    
+    <canvas id="canvas" style="display:block; width:100vw; height:100vh; background:#1a1a2e;"></canvas>
+    <div id="info" style="position:fixed; bottom:20px; left:0; width:100%; text-align:center; font-family:Arial; font-size:18px; color:#fff; text-shadow:0 2px 10px rgba(0,0,0,0.7); pointer-events:none; z-index:10; background:rgba(0,0,0,0.2); padding:10px 0;">💕 Привет!</div>
 
     <script>
         // ============================================================
@@ -37,11 +18,21 @@
         const ctx = canvas.getContext('2d');
 
         function resize() {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
+            const width = window.innerWidth;
+            const height = window.innerHeight;
+            canvas.width = width;
+            canvas.height = height;
+            canvas.style.width = width + 'px';
+            canvas.style.height = height + 'px';
+            console.log(`📐 Размер: ${width}x${height}`);
         }
+        
+        // Вызываем сразу и при изменении
         resize();
         window.addEventListener('resize', resize);
+        // Дополнительный вызов через 0.5 сек (для VK)
+        setTimeout(resize, 500);
+        setTimeout(resize, 1500);
 
         // ============================================================
         // 2. ПАРАМЕТРЫ КУБИКОВ
@@ -53,7 +44,7 @@
         ];
 
         // ============================================================
-        // 3. ФУНКЦИЯ РИСОВАНИЯ КУБА (ИЗОМЕТРИЯ)
+        // 3. РИСОВАНИЕ КУБА
         // ============================================================
         function drawCube(ctx, cx, cy, size, color, rotX, rotY) {
             const half = size / 2;
@@ -64,14 +55,11 @@
                 const sinX = Math.sin(rotX);
                 const cosY = Math.cos(rotY);
                 const sinY = Math.sin(rotY);
-
                 let x1 = x * cosY - z * sinY;
                 let z1 = x * sinY + z * cosY;
                 let y1 = y;
-
                 let y2 = y1 * cosX - z1 * sinX;
                 let z2 = y1 * sinX + z1 * cosX;
-
                 const px = cx + (x1 - z2) * Math.cos(angle);
                 const py = cy + (x1 + z2) * Math.sin(angle) - y2 * 0.5;
                 return { x: px, y: py };
@@ -81,26 +69,13 @@
                 [-1, -1, -1], [1, -1, -1], [1, -1, 1], [-1, -1, 1],
                 [-1, 1, -1], [1, 1, -1], [1, 1, 1], [-1, 1, 1]
             ];
-
             const projected = vertices.map(v => project(v[0] * half, v[1] * half, v[2] * half));
+            const faces = [[0,1,2,3],[4,5,6,7],[0,1,5,4],[2,3,7,6],[0,3,7,4],[1,2,6,5]];
+            const edges = [[0,1],[1,2],[2,3],[3,0],[4,5],[5,6],[6,7],[7,4],[0,4],[1,5],[2,6],[3,7]];
 
-            const faces = [
-                [0, 1, 2, 3], [4, 5, 6, 7],
-                [0, 1, 5, 4], [2, 3, 7, 6],
-                [0, 3, 7, 4], [1, 2, 6, 5]
-            ];
-
-            const edges = [
-                [0, 1], [1, 2], [2, 3], [3, 0],
-                [4, 5], [5, 6], [6, 7], [7, 4],
-                [0, 4], [1, 5], [2, 6], [3, 7]
-            ];
-
-            // Грани
             ctx.strokeStyle = color;
             ctx.lineWidth = 2;
             ctx.fillStyle = color + '33';
-
             faces.forEach(face => {
                 ctx.beginPath();
                 face.forEach((idx, i) => {
@@ -112,8 +87,6 @@
                 ctx.fill();
                 ctx.stroke();
             });
-
-            // Рёбра
             ctx.strokeStyle = '#ffffff';
             ctx.lineWidth = 1.5;
             edges.forEach(edge => {
@@ -129,10 +102,14 @@
         // ============================================================
         // 4. АНИМАЦИЯ
         // ============================================================
-        const centerX = window.innerWidth / 2;
-        const centerY = window.innerHeight / 2;
+        let centerX = window.innerWidth / 2;
+        let centerY = window.innerHeight / 2;
 
         function animate() {
+            // Обновляем центр при изменении размера
+            centerX = window.innerWidth / 2;
+            centerY = window.innerHeight / 2;
+
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
             // Звёзды
@@ -149,10 +126,8 @@
             cubes.forEach((cube, index) => {
                 cube.rotX += cube.speedX;
                 cube.rotY += cube.speedY;
-
                 const cx = centerX + cube.x;
                 const cy = centerY + cube.y + Math.sin(Date.now() / 1000 + index) * 10;
-
                 drawCube(ctx, cx, cy, cube.size, cube.color, cube.rotX, cube.rotY);
             });
 
@@ -163,7 +138,8 @@
         // 5. ЗАПУСК
         // ============================================================
         animate();
-        console.log('✅ Кубики запущены!');
+        console.log('🚀 Супер-фикс кубики запущены!');
+        console.log(`📐 Размер canvas: ${canvas.width}x${canvas.height}`);
     </script>
 </body>
 </html>
