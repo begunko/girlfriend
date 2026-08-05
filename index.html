@@ -3,129 +3,130 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Подружка</title>
+    <title>Подружка 🍳</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        html, body { width: 100%; height: 100%; overflow: hidden; background: #2a1f1a; }
-        #canvas-container {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            background: #2a1f1a;
-        }
-        #canvas-container canvas {
-            display: block;
-            width: 100% !important;
-            height: 100% !important;
-        }
+        body { margin: 0; overflow: hidden; }
         #info {
             position: fixed;
             bottom: 20px;
             left: 0;
             width: 100%;
             text-align: center;
+            font-family: 'Segoe UI', Arial, sans-serif;
+            font-size: 20px;
+            font-weight: bold;
             color: #fff;
-            font-family: Arial, sans-serif;
-            font-size: 18px;
-            text-shadow: 0 2px 10px rgba(0,0,0,0.8);
+            text-shadow: 0 2px 10px rgba(0,0,0,0.7);
             pointer-events: none;
             z-index: 10;
-            background: rgba(0,0,0,0.3);
-            padding: 12px 0;
+            background: rgba(0,0,0,0.2);
+            padding: 15px 0;
             backdrop-filter: blur(2px);
         }
     </style>
 </head>
 <body>
-    <div id="canvas-container"></div>
-    <div id="info">💕 Загрузка...</div>
+    <div id="info">💕 Привет, я твоя подружка на кухне!</div>
 
-    <script src="https://cdn.babylonjs.com/babylon.js"></script>
-    <script>
-        console.log('🚀 Супер-фикс версия...');
+    <!-- ============================================ -->
+    <!-- 1. ПОДКЛЮЧАЕМ A-FRAME (ОГРОМНЫЙ ПЛЮС: ОН ЛЕГКИЙ!) -->
+    <!-- ============================================ -->
+    <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
 
-        const container = document.getElementById('canvas-container');
-        const canvas = document.createElement('canvas');
-        container.appendChild(canvas);
-
-        // ============================================================
-        // ЖЕСТКО ЗАДАЁМ РАЗМЕРЫ CANVAS В ПИКСЕЛЯХ
-        // ============================================================
-        function resizeCanvas() {
-            const width = window.innerWidth;
-            const height = window.innerHeight;
-            canvas.width = width;
-            canvas.height = height;
-            canvas.style.width = width + 'px';
-            canvas.style.height = height + 'px';
-            if (engine) {
-                engine.resize();
-            }
-            console.log(`📐 Ресайз: ${width}x${height}`);
-        }
-
-        const engine = new BABYLON.Engine(canvas, true);
-        const scene = new BABYLON.Scene(engine);
-        scene.clearColor = new BABYLON.Color4(0.16, 0.12, 0.10, 1);
-
-        const camera = new BABYLON.ArcRotateCamera(
-            'camera', 
-            Math.PI / 2, 
-            Math.PI / 3, 
-            6, 
-            new BABYLON.Vector3(0, 0.5, 0), 
-            scene
-        );
-        camera.attachControl(canvas, true);
-        camera.lowerRadiusLimit = 2;
-        camera.upperRadiusLimit = 10;
-
-        const light = new BABYLON.HemisphericLight('light', new BABYLON.Vector3(0, 1, 0), scene);
-        light.intensity = 0.9;
-        light.diffuse = new BABYLON.Color3(1, 0.9, 0.8);
-
-        const fillLight = new BABYLON.DirectionalLight('fillLight', new BABYLON.Vector3(-1, 0.5, 1), scene);
-        fillLight.intensity = 0.5;
-
-        // Куб
-        const box = BABYLON.MeshBuilder.CreateBox('box', { size: 1.2 }, scene);
-        box.position.y = 0.6;
-        const material = new BABYLON.StandardMaterial('mat', scene);
-        material.diffuseColor = new BABYLON.Color3(1, 0.4, 0.6);
-        material.specularColor = new BABYLON.Color3(0.3, 0.3, 0.3);
-        box.material = material;
-
-        // Пол
-        const ground = BABYLON.MeshBuilder.CreateGround('ground', { width: 4, height: 4 }, scene);
-        ground.position.y = 0;
-        const groundMat = new BABYLON.StandardMaterial('groundMat', scene);
-        groundMat.diffuseColor = new BABYLON.Color3(0.3, 0.25, 0.2);
-        ground.material = groundMat;
-
-        document.getElementById('info').innerHTML = '💕 Привет, я твоя подружка!';
-
-        // ============================================================
-        // РЕНДЕРИНГ
-        // ============================================================
-        engine.runRenderLoop(() => {
-            box.rotation.x += 0.005;
-            box.rotation.y += 0.01;
-            scene.render();
-        });
-
-        // ============================================================
-        // ВЫЗЫВАЕМ РЕСАЙЗ ПРИ ЗАГРУЗКЕ И ПРИ ИЗМЕНЕНИИ РАЗМЕРА
-        // ============================================================
-        window.addEventListener('resize', resizeCanvas);
+    <!-- ============================================ -->
+    <!-- 2. СЦЕНА (ВСЯ МАГИЯ В HTML-ТЕГАХ) -->
+    <!-- ============================================ -->
+    <a-scene background="color: #f5e6d3">
         
-        // Вызываем сразу, потом через 0.5 сек и через 2 сек (для надежности)
-        resizeCanvas();
-        setTimeout(resizeCanvas, 500);
-        setTimeout(resizeCanvas, 2000);
+        <!-- ===== ОСВЕЩЕНИЕ ===== -->
+        <a-light type="ambient" color="#fff" intensity="0.5"></a-light>
+        <a-light type="directional" color="#fff" intensity="0.8" position="2 3 4"></a-light>
 
-        console.log('✅ Супер-фикс версия запущена!');
+        <!-- ===== ПОДРУЖКА (ИЗ ПРИМИТИВОВ) ===== -->
+        <!-- Тело (платье) -->
+        <a-cylinder id="body" position="0 0.6 0" radius="0.3" height="1" color="#f28b8b"></a-cylinder>
+        
+        <!-- Голова -->
+        <a-sphere position="0 1.35 0" radius="0.3" color="#fce3d8"></a-sphere>
+        
+        <!-- Глаза -->
+        <a-sphere position="-0.12 1.45 0.28" radius="0.06" color="#2c3e50"></a-sphere>
+        <a-sphere position="0.12 1.45 0.28" radius="0.06" color="#2c3e50"></a-sphere>
+        
+        <!-- Волосы -->
+        <a-sphere position="0 1.5 -0.05" radius="0.35" color="#4a2c1a" scale="1 0.5 1"></a-sphere>
+
+        <!-- ===== КУХНЯ ===== -->
+        <!-- Стол -->
+        <a-box position="1.2 0.3 -0.8" width="1.2" height="0.08" depth="0.6" color="#8b6b4b"></a-box>
+        <a-box position="1.2 0 -0.8" width="0.06" height="0.5" depth="0.06" color="#8b6b4b"></a-box>
+
+        <!-- Пол (красивый) -->
+        <a-plane position="0 0 0" rotation="-90 0 0" width="6" height="6" color="#d9c8b0"></a-plane>
+
+        <!-- Стена (задник) -->
+        <a-plane position="0 1.5 -2" rotation="0 0 0" width="6" height="3" color="#f0e6d3"></a-plane>
+
+        <!-- Картинка на стене (для уюта) -->
+        <a-box position="-1.2 1.5 -1.9" width="0.6" height="0.4" depth="0.05" color="#4a90d9"></a-box>
+
+        <!-- ===== АНИМАЦИЯ "ПЕРЕМИНАНИЕ" ===== -->
+        <a-entity id="girl-group" position="0 0 0" animation="property: rotation.z; to: 0.03; dur: 800; dir: alternate; loop: true">
+            <!-- Привязываем всю девушку к группе -->
+            <a-entity position="0 0 0">
+                <a-cylinder id="body" position="0 0.6 0" radius="0.3" height="1" color="#f28b8b"></a-cylinder>
+                <a-sphere position="0 1.35 0" radius="0.3" color="#fce3d8"></a-sphere>
+                <a-sphere position="-0.12 1.45 0.28" radius="0.06" color="#2c3e50"></a-sphere>
+                <a-sphere position="0.12 1.45 0.28" radius="0.06" color="#2c3e50"></a-sphere>
+                <a-sphere position="0 1.5 -0.05" radius="0.35" color="#4a2c1a" scale="1 0.5 1"></a-sphere>
+            </a-entity>
+        </a-entity>
+
+    </a-scene>
+
+    <!-- ============================================ -->
+    <!-- 3. VK КНОПКА "ПОЗВАТЬ ПОДРУЖКУ" -->
+    <!-- ============================================ -->
+    <script>
+        // Подключаем VK Bridge (для кнопки)
+        (function() {
+            const script = document.createElement('script');
+            script.src = 'https://vk.com/js/api/openapi.js?169';
+            document.head.appendChild(script);
+            script.onload = function() {
+                VK.init(function() {
+                    console.log('✅ VK Bridge готов!');
+                });
+            };
+        })();
+
+        // Создаём кнопку (через DOM, чтобы не зависеть от VK)
+        const btn = document.createElement('button');
+        btn.innerText = '💕 Позвать подружку';
+        btn.style.cssText = `
+            position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%);
+            z-index: 20; padding: 14px 28px; border: none; border-radius: 40px;
+            background: #ff6b8a; color: white; font-size: 20px; font-weight: bold;
+            cursor: pointer; box-shadow: 0 4px 20px rgba(255,107,138,0.4);
+            font-family: 'Segoe UI', Arial, sans-serif;
+            transition: all 0.2s;
+            backdrop-filter: blur(4px);
+            border: 1px solid rgba(255,255,255,0.2);
+        `;
+        btn.onmouseenter = function() { this.style.transform = 'translateX(-50%) scale(1.05)'; };
+        btn.onmouseleave = function() { this.style.transform = 'translateX(-50%) scale(1)'; };
+        btn.onclick = function() {
+            if (typeof VK !== 'undefined' && VK.callMethod) {
+                VK.callMethod('showInviteBox', {
+                    text: 'Загляни к моей подружке на кухню! 💕'
+                });
+            } else {
+                alert('Поделиться можно только в приложении VK!');
+            }
+        };
+        document.body.appendChild(btn);
+
+        console.log('✅ A-Frame подружка запущена!');
     </script>
 </body>
 </html>
