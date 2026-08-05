@@ -2,68 +2,145 @@
 <html>
 <head>
     <meta charset="utf-8" />
-    <title>Тест Babylon.js (Ступенька 1)</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Подружка</title>
     <style>
-        body { margin: 0; overflow: hidden; background: #222; }
-        #info { position: absolute; top: 10px; left: 10px; color: white; font-family: Arial; background: rgba(0,0,0,0.5); padding: 5px 10px; border-radius: 5px; z-index: 10; }
+        /* Сброс всех отступов */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html, body { 
+            width: 100%; 
+            height: 100%; 
+            overflow: hidden; 
+            background: #2a1f1a; /* Приятный тёмный фон */
+        }
+        /* Главный контейнер — он будет всегда на весь экран */
+        #canvas-container {
+            width: 100vw;
+            height: 100vh;
+            display: block;
+            position: fixed;
+            top: 0;
+            left: 0;
+        }
+        /* Сам канвас — растягиваем на 100% */
+        #canvas-container canvas {
+            display: block;
+            width: 100% !important;
+            height: 100% !important;
+        }
+        #info {
+            position: fixed;
+            bottom: 20px;
+            left: 0;
+            width: 100%;
+            text-align: center;
+            color: #fff;
+            font-family: Arial, sans-serif;
+            font-size: 18px;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.8);
+            pointer-events: none;
+            z-index: 10;
+            background: rgba(0,0,0,0.3);
+            padding: 12px 0;
+            backdrop-filter: blur(2px);
+        }
     </style>
-    <!-- Подключаем Babylon.js С ТОЛЬКО ЯДРОМ (без загрузчиков) -->
-    <script src="https://cdn.babylonjs.com/babylon.js"></script>
 </head>
 <body>
-    <div id="info">⏳ Загрузка...</div>
-    <canvas id="canvas" style="width:100vw;height:100vh;display:block;"></canvas>
+    <div id="canvas-container"></div>
+    <div id="info">✨ Загрузка...</div>
 
+    <script src="https://cdn.babylonjs.com/babylon.js"></script>
     <script>
-        // ============================================================
-        // СТУПЕНЬКА 1: Просто куб
-        // ============================================================
-        console.log('🚀 Начинаем тест...');
+        console.log('🚀 Запуск исправленной версии...');
 
-        const canvas = document.getElementById('canvas');
+        // ================================================
+        // 1. ИНИЦИАЛИЗАЦИЯ СЦЕНЫ
+        // ================================================
+        const container = document.getElementById('canvas-container');
+        const canvas = document.createElement('canvas');
+        container.appendChild(canvas);
+
         const engine = new BABYLON.Engine(canvas, true);
         const scene = new BABYLON.Scene(engine);
-        
-        // Камера
+        scene.clearColor = new BABYLON.Color4(0.16, 0.12, 0.10, 1); // Красивый коричневый фон
+
+        // ================================================
+        // 2. КАМЕРА (увеличенная)
+        // ================================================
         const camera = new BABYLON.ArcRotateCamera(
-            'camera',
-            Math.PI / 2,
-            Math.PI / 3,
-            5,
-            BABYLON.Vector3.Zero(),
+            'camera', 
+            Math.PI / 2, 
+            Math.PI / 3, 
+            6,  // Отодвинули камеру дальше, чтобы куб точно был виден
+            new BABYLON.Vector3(0, 0.5, 0), 
             scene
         );
         camera.attachControl(canvas, true);
+        // Ограничиваем, чтобы камера не улетала слишком далеко
+        camera.lowerRadiusLimit = 2;
+        camera.upperRadiusLimit = 10;
 
-        // Свет
+        // ================================================
+        // 3. СВЕТ
+        // ================================================
         const light = new BABYLON.HemisphericLight(
-            'light',
-            new BABYLON.Vector3(0, 1, 0),
+            'light', 
+            new BABYLON.Vector3(0, 1, 0), 
             scene
         );
-        light.intensity = 0.8;
+        light.intensity = 0.9;
+        light.diffuse = new BABYLON.Color3(1, 0.9, 0.8);
 
-        // Куб
-        const box = BABYLON.MeshBuilder.CreateBox('box', { size: 1.5 }, scene);
-        box.position.y = 0.75;
+        const fillLight = new BABYLON.DirectionalLight(
+            'fillLight', 
+            new BABYLON.Vector3(-1, 0.5, 1), 
+            scene
+        );
+        fillLight.intensity = 0.5;
 
-        // Пол (чтобы было видно тень)
+        // ================================================
+        // 4. КУБ (сделаем его красивее)
+        // ================================================
+        const box = BABYLON.MeshBuilder.CreateBox('box', { size: 1.2 }, scene);
+        box.position.y = 0.6;
+        
+        // Яркий материал, чтобы точно было видно
+        const material = new BABYLON.StandardMaterial('mat', scene);
+        material.diffuseColor = new BABYLON.Color3(1, 0.4, 0.6); // Розово-красный
+        material.specularColor = new BABYLON.Color3(0.3, 0.3, 0.3);
+        box.material = material;
+
+        // Пол (чтобы было понятно, где пол)
         const ground = BABYLON.MeshBuilder.CreateGround('ground', { width: 4, height: 4 }, scene);
         ground.position.y = 0;
+        const groundMat = new BABYLON.StandardMaterial('groundMat', scene);
+        groundMat.diffuseColor = new BABYLON.Color3(0.3, 0.25, 0.2);
+        ground.material = groundMat;
 
-        document.getElementById('info').innerHTML = '✅ Куб загружен! (Ступенька 1)';
+        // ================================================
+        // 5. ЗАПУСК
+        // ================================================
+        document.getElementById('info').innerHTML = '💕 Привет, я твоя подружка!';
 
-        // Рендеринг
         engine.runRenderLoop(() => {
-            // Анимация вращения куба
-            box.rotation.x += 0.01;
-            box.rotation.y += 0.02;
+            box.rotation.x += 0.005;
+            box.rotation.y += 0.01;
             scene.render();
         });
 
-        window.addEventListener('resize', () => engine.resize());
+        // АДАПТАЦИЯ ПОД РАЗМЕРЫ (ВАЖНО)
+        window.addEventListener('resize', () => {
+            engine.resize();
+        });
 
-        console.log('✅ Тест 1 завершён');
+        // В VK размер может меняться после загрузки — сделаем пересчёт через секунду
+        setTimeout(() => {
+            engine.resize();
+            console.log('🔄 Принудительный ресайз');
+        }, 500);
+
+        console.log('✅ Исправленный тест запущен!');
     </script>
 </body>
 </html>
